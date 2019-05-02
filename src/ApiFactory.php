@@ -184,7 +184,11 @@ class ApiFactory
 
         $authorizations = $this->getAuthorizations($serviceClassName);
 
-        $docsArray = $this->getDocumentationConfig($api->getName());
+        $docsArray = $this->getDocumentationConfig($api);
+
+        if (isset($docsArray[$serviceClassName])) {
+            $service->setDocs($docsArray[$serviceClassName]);
+        }
 
         $service->setName($serviceData['service_name']);
         if (isset($docsArray[$serviceClassName]['description'])) {
@@ -284,6 +288,17 @@ class ApiFactory
             $ops[] = $op;
         }
 
+        if (!empty($serviceData['collection_query_whitelist'])) {
+            foreach ($serviceData['collection_query_whitelist'] as $queryParam) {
+                if (!isset($fields['query'])) {
+                    $fields['query'] = [];
+                }
+                $fieldDoc = $docsArray[$serviceClassName]['collection']['query'][$queryParam] ?? [];
+                $fields['query'][$queryParam] = $this->getField(['name' => $queryParam] + $fieldDoc);
+            }
+        }
+
+
         $service->setFields($fields);
         $service->setOperations($ops);
 
@@ -302,6 +317,11 @@ class ApiFactory
                     ? $docsArray[$serviceClassName]['entity'][$httpMethod]['request']
                     : '';
                 $op->setRequestDescription($requestDescription);
+
+                $requestSummary = isset($docsArray[$serviceClassName]['collection'][$httpMethod]['summary'])
+                    ? $docsArray[$serviceClassName]['collection'][$httpMethod]['summary']
+                    : '';
+                $op->setSummary($requestSummary)  ;
 
                 $responseDescription = isset($docsArray[$serviceClassName]['entity'][$httpMethod]['response'])
                     ? $docsArray[$serviceClassName]['entity'][$httpMethod]['response']
@@ -420,11 +440,13 @@ class ApiFactory
     /**
      * Retrieve the documentation for a given API module
      *
-     * @param string $apiName
+     * @param Api $api
      * @return array
      */
-    protected function getDocumentationConfig($apiName)
+    protected function getDocumentationConfig($api)
     {
+        $apiName = $api->getName();
+
         if (isset($this->docs[$apiName])) {
             return $this->docs[$apiName];
         }
@@ -436,6 +458,8 @@ class ApiFactory
         } else {
             $this->docs[$apiName] = [];
         }
+
+        $api->setDocs($this->docs[$apiName]);
 
         return $this->docs[$apiName];
     }

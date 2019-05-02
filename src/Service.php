@@ -67,6 +67,11 @@ class Service implements IteratorAggregate
     protected $fields = [];
 
     /**
+     * @var array
+     */
+    protected $docs = [];
+
+    /**
      * @param \ZF\Apigility\Documentation\Api $api
      */
     public function setApi($api)
@@ -231,7 +236,7 @@ class Service implements IteratorAggregate
      */
     public function setFields($fields)
     {
-        $this->fields = $fields;
+        $this->fields = array_merge($this->fields, $fields);
     }
 
     /**
@@ -240,6 +245,22 @@ class Service implements IteratorAggregate
     public function getFields($type)
     {
         return isset($this->fields[$type]) ? $this->fields[$type] : [];
+    }
+
+    /**
+     * @param array $docs
+     */
+    public function setDocs($docs)
+    {
+        $this->docs = $docs;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDocs()
+    {
+        return $this->docs;
     }
 
     /**
