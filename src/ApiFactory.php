@@ -187,6 +187,7 @@ class ApiFactory
         $docsArray = $this->getDocumentationConfig($api);
 
         if (isset($docsArray[$serviceClassName])) {
+            $docsArray[$serviceClassName]['zf-rest'] = $serviceData;
             $service->setDocs($docsArray[$serviceClassName]);
         }
 
